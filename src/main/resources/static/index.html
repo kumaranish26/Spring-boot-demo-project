@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User API Tester</title>
+
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f2f2f2;
+          padding: 30px;
+        }
+
+        .container {
+          max-width: 800px;
+          margin: auto;
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        .request-bar {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 15px;
+        }
+
+        select, input {
+          padding: 10px;
+          font-size: 14px;
+          border-radius: 5px;
+          border: 1px solid #ccc;
+        }
+
+        input {
+          flex: 1;
+        }
+
+        textarea {
+          width: 100%;
+          height: 120px;
+          padding: 10px;
+          margin-top: 10px;
+          border-radius: 5px;
+          border: 1px solid #ccc;
+          font-family: monospace;
+        }
+
+        button {
+          margin-top: 15px;
+          padding: 12px 20px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 16px;
+        }
+
+        button:hover {
+          background: #0056b3;
+        }
+
+        pre {
+          background: #f0f0f0;
+          padding: 15px;
+          border-radius: 5px;
+          margin-top: 20px;
+          overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1>User API Tester</h1>
+
+    <!-- Method + URL -->
+    <div class="request-bar">
+        <select id="method" onchange="toggleBody()">
+            <option value="POST">POST</option>
+            <option value="GET">GET</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+        </select>
+
+        <input
+                type="text"
+                id="url"
+                placeholder="/api/users"
+        >
+    </div>
+
+    <!-- Request Body -->
+    <textarea
+            id="requestBody"
+            placeholder='Example JSON:
+{
+  "name": "Alice"
+}'></textarea>
+
+    <button onclick="sendRequest()">Send Request</button>
+
+    <h3>Response</h3>
+    <pre id="response"></pre>
+</div>
+
+<script>
+    function toggleBody() {
+      const method = document.getElementById("method").value;
+      const body = document.getElementById("requestBody");
+      const urlInput = document.getElementById("url");
+
+      if (method === "POST") {
+        body.style.display = "block";
+        urlInput.value = "/api/users";
+      } else if (method === "PUT") {
+        body.style.display = "block";
+        urlInput.value = "/api/users/0"; // default id, user can change
+      } else if (method === "DELETE") {
+        body.style.display = "none";
+        urlInput.value = "/api/users/0"; // default id, user can change
+      } else {
+        body.style.display = "none";
+        urlInput.value = "/api/users";
+      }
+    }
+
+    async function sendRequest() {
+      const method = document.getElementById("method").value;
+      const url = document.getElementById("url").value;
+      const body = document.getElementById("requestBody").value;
+      const responseBox = document.getElementById("response");
+
+      try {
+        const options = { method };
+
+        if (method === "POST" || method === "PUT") {
+          options.headers = { "Content-Type": "application/json" };
+          options.body = body;
+        }
+
+        const response = await fetch(url, options);
+        const contentType = response.headers.get("content-type");
+
+        let text;
+        if (contentType && contentType.includes("application/json")) {
+          text = JSON.stringify(await response.json(), null, 2);
+        } else {
+          text = await response.text();
+        }
+
+        responseBox.textContent = text;
+      } catch (error) {
+        responseBox.textContent = "Error: " + error;
+      }
+    }
+
+    toggleBody();
+</script>
+</body>
+</html>
